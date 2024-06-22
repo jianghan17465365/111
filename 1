@@ -1,0 +1,65 @@
+syms R x y Ox Oy R1 rmax
+theta = [0:2*pi/9:2*pi];
+x_paint = 100*cos(theta);
+y_paint = 100*sin(theta);
+plot(x_paint,y_paint)hold on
+n = 20;%迭代次数
+signal1Y = 0;%记录额外一信号仅有一解的次数
+signal2Y = 0;%记录额外二信号仅有一解的次数
+signalgY = 0;%需要大于两个额外信号的次数
+point1 = zeros(10,2);%记录找到的点集，用以判断相似性point2 = zeros(10,2);
+for k=1:n
+syms R x y Ox Oy R1 rmax
+count1 = 0; %记录额外一信号时求得解个数
+count2 = 0;%记录额外二信号时求得解个数
+R = 100 ;%假设理想圆半径为
+100mrmax =10 ;%最大偏移量
+%随机取发生偏移的点
+n1 = randi([2,5]);%只考虑上方偏移，下方同理，
+%在允许范围内取一偏移位置
+alpha1 = 2*pi*rand();
+r1 = rmax*rand(); %偏移位置距离原完美点距离
+xn1 = R*cos((2*pi/9)*(n1-1));%偏移前所在完美位置
+yn1 = R*sin((2*pi/9)*(n1-1));
+t = (0:pi/100:2*pi);
+xt = xn1 + rmax*cos(t);
+yt = yn1 +rmax*sin(t);
+plot(x1,y1);
+hold on%偏移后的坐标
+x1 = xn1+r1*cos(alpha1);
+y1 = yn1+r1*sin(alpha1);
+scatter(x1,y1);
+hold on
+%根据偏移坐标与F0,F1确定∠F0FkF1
+%即确定一圆，该圆可认为由F0，F1，与∠F0FkF1得出
+F1 = Ox^2+Oy^2 - R1^2;
+F2 = (Ox-R)^2 + Oy^2 - R1^2;
+F3 = (Ox - x1)^2+(Oy - y1)^2 - R1^2;
+F=[F1;F2;F3];[Ox,Oy,R1] = solve(F,[Ox;Oy;R1]);%解搜索弧圆心，搜索弧半径
+Ox = double(Ox(1));Oy = double(Oy(1));R1 =abs(double(R1(1)));%有俩一样的解%
+绘制偏离范围圆与搜索弧相交
+thetan = [0:pi/100:2*pi];
+x11 = xn1+rmax*cos(thetan);
+y11 = yn1+rmax*sin(thetan);
+plot(x11,y11);
+hold onx22 = Ox+R1*cos(thetan);
+y22 = Oy+R1*sin(thetan);plot(x22,y22);
+hold on
+%求该圆与偏离圆交点，得到角度，确定搜索弧
+F1 = (x - xn1)^2 + (y - yn1)^2 - rmax^2; %偏离范圆  
+F2 = (x - Ox)^2 + (y - Oy)^2 - R1^2;
+[x2,y2] = solve([F1;F2],[x,y]);x2 = double(x2); y2 = double(y2); %搜索弧两端点
+x_d = xn1 - Ox;
+y_d = yn1 - Oy;
+dir_0 = [x_d,y_d];%搜索弧圆心圆心指向原完美点方向向量，其为搜索范围的中心
+dir_theta0 = atan(y_d/x_d);%搜索弧的中心角
+if dir_theta0<0dir_theta0 = dir_theta0+pi; %转换到钝角
+elseif dir_theta0>0 && x_d<0dir_theta0 = dir_theta0+pi;
+end
+%根据中心角上下偏离的角
+dir_theta = acos(dot(dir_0/norm(dir_0),[x2(1)-Ox,y2(1)-Oy]/norm([x2(1)-Ox,y2(1)-Oy])));
+%先随机取一个额外发射点
+n2 = randi([2,9]);
+while n2 == n1 %保证与n1不同n2 = randi([2,9]);
+enddir_1=[R*cos((2*pi/9)*(n2-1))-x1,R*sin((2*pi/9)*(n2-1))-y1];%偏移点指向发射点的方向向量
+theta1=acos(dot(dir_1/norm(dir_1),[-x1,-y1]/norm([-x1,-y1]))); %额外测量的一个夹角，与遍历搜索弧的方向夹角保持为
